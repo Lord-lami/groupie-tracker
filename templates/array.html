@@ -1,3 +1,7 @@
-<{{.Tag}} class="{{.Name}}">
-    {{range .Value}}<li>.</li>{{end}}
-</{{.Tag}}>
+{{$tag := "ul" -}}
+{{if .Ordered -}}
+{{$stag = "ol"}}
+{{end}}
+<{{$tag}} class="{{.Name}}">
+    {{range .Value}}<li>{{.}}</li>{{end}}
+</{{$tag}}>

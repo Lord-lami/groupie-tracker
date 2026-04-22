@@ -1,1 +1,5 @@
-<div class="{{.Name}}">{{.Value}}</div>
+<div class="{{.Name}}">
+    {{range .Elements -}}
+    {{.}}
+    {{end -}}
+</div>
