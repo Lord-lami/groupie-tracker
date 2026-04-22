@@ -1,0 +1,7 @@
+{{$color := "#e30508" -}}
+{{$emoji := "❌" -}}
+{{if .Value -}}
+{{$color = "#25fa1e" -}}
+{{$emoji = "✅" -}}
+{{end -}}
+<span color="{{$color}}" class="{{.Name}}">{{.Name}} {{$emoji}}</span>

@@ -15,7 +15,7 @@ import (
 
 var templateFS fs.FS = os.DirFS("templates")
 
-var theTemplates *template.Template = template.Must(template.ParseFS(templateFS, "*.html"))
+var theTemplates *template.Template = template.Must(template.ParseFS(templateFS, "**/*.html"))
 
 var page int = 0
 

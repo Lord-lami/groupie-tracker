@@ -4,10 +4,25 @@ concepts - API, abstraction, interface, data presentation, template
 skills - data arrangement, dynamic templating, endpoint security, visualization
 tools - html templates, json, map
 techniques - iteration, functions
-strategies - json to card conversion, api data - html mapping
+strategies - json to card conversion, api data - read only html mapping
 
-solution - api data - html mapping
-Automatically convert/map API endpoints to pages and the data from those endpoints into html elements
+solution - api data - read only html mapping
+Automatically convert/map API endpoints to pages and the data from those 
+endpoints into html elements.
+
+nondisplay/null - no html
+boolean - bool's name as purestring and bool value as a ✅ or ❌. 
+The color of the bools name string is either red or green depnding on the bool value.
+pure string - h1, h2, h3, h4, p, span, etc (A choice must be made)
+date string - input type=date (can be read-only with disable)
+image url string - image elements
+endpoint url string - pages, link to pages
+objects - div
+arrays/list - ul, ol
+2d array/list - table
+
+
+
 
 assessment - 
             concurrent io
