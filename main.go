@@ -9,13 +9,18 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	"reflect"
 	"strings"
 )
 
+var API string = "https://groupietrackers.herokuapp.com/api"
+
 var templateFS fs.FS = os.DirFS("templates")
 
-var theTemplates *template.Template = template.Must(template.ParseFS(templateFS, "**/*.html"))
+var theTemplates *template.Template = template.Must(template.ParseFS(templateFS,
+	"*.html",
+	"*/*.html",
+	"*/*/*.html"))
 
 var pageNum int = 0
 
@@ -24,71 +29,28 @@ var page struct {
 	Content template.HTML
 }
 
-type artistDetail struct {
-	Id           uint16
-	Image        string
-	Name         string
-	Members      []string
-	CreationDate uint16
-	FirstAlbum   string
-	Locations    string
-	ConcertDates string
-	Relations    string
-}
-
-type pageLink struct {
+type Link struct {
 	Name string
 	Url  string
 }
 
 type object struct {
 	Name     string
-	Elements []string
+	Elements []template.HTML
 }
 
-func getArtistspage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Method, r.URL.Path)
-	nbrOfItemsInpage := 6
-	artistsDetails := make([]artistDetail, nbrOfItemsInpage)
-	for i := range 6 {
-		id := strconv.Itoa(pageNum*nbrOfItemsInpage + (i + 1))
-		artistLink := "https://groupietrackers.herokuapp.com/api/artists/" + id
-		resp, err := http.Get(artistLink)
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
+type apiLinkString string
+type imageLinkString string
 
-		// fmt.Println("Response Status:", resp.Status)
-		body := []byte{}
-		body, err = io.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		// fmt.Printf("As String: %s\n", body)
-		if err := json.Unmarshal(body, &artistsDetails[i]); err != nil {
-			panic(err)
-		}
-		// fmt.Println()
-		// fmt.Printf("%#v\n", artistDetails)
-
-	}
-	var content strings.Builder
-	err := theTemplates.ExecuteTemplate(&content, "artists.html", artistsDetails)
-	if err != nil {
-		panic(err)
-	}
-	page.Title = "Artists"
-	page.Content = template.HTML(content.String())
-	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
-	if err != nil {
-		panic(err)
-	}
+type mainPageDataHolder struct {
+	Artists   apiLinkString `json:"artists"`
+	Locations apiLinkString `json:"locations"`
+	Dates     apiLinkString `json:"dates"`
+	Relation  apiLinkString `json:"relation"`
 }
 
 func groupieTrackerApiResponseBody(path string) (body []byte) {
-	apiLink := "https://groupietrackers.herokuapp.com/api" + path
+	apiLink := API + path
 	resp, err := http.Get(apiLink)
 	if err != nil {
 		panic(err)
@@ -102,26 +64,37 @@ func groupieTrackerApiResponseBody(path string) (body []byte) {
 	return
 }
 
-func hanleMainpage(w http.ResponseWriter, r *http.Request) {
+func hanleMainPage(w http.ResponseWriter, r *http.Request) {
 	// Get the response body from the API
-	var apiPathMainData map[string]string
-	err := json.Unmarshal(groupieTrackerApiResponseBody(""), &apiPathMainData)
+	mainPageData := mainPageDataHolder{}
+	err := json.Unmarshal(groupieTrackerApiResponseBody(""), &mainPageData)
 	if err != nil {
 		panic(err)
 	}
 
 	// Render the links from the API as html anchor tags
-	links := []string{}
-	for name, url := range apiPathMainData {
+	// that link to their display page
+	mainPageValue := reflect.ValueOf(&mainPageData).Elem()
+	links := []template.HTML{}
+	for i := range mainPageValue.NumField() {
 		var linkHtml strings.Builder
+		url := mainPageValue.Field(i).String()
+		name := mainPageValue.Type().Field(i).Name
+		var ok bool
+		url, ok = strings.CutPrefix(url, "https://groupietrackers.herokuapp.com/api")
+		if !ok {
+			panic("Something is horribly wrong with this link")
+		}
 		err := theTemplates.ExecuteTemplate(&linkHtml,
 			"pageurlstring.html",
-			pageLink{name, url})
+			Link{name, url})
 		if err != nil {
 			panic(err)
 		}
-		links = append(links, linkHtml.String())
+		links = append(links, template.HTML(linkHtml.String()))
 	}
+
+	// slices.Sort(links)
 
 	// Render the html links as part of the index page object div
 	var indexPageDiv strings.Builder
@@ -135,14 +108,21 @@ func hanleMainpage(w http.ResponseWriter, r *http.Request) {
 	// Render the main page on the browser
 	page.Title = "Index"
 	page.Content = template.HTML(indexPageDiv.String())
+	indexPageDiv.Reset()
 	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
+	theTemplates.ExecuteTemplate(&indexPageDiv, "layout.html", page)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(indexPageDiv.String())
 }
 
 func main() {
-	http.HandleFunc("GET /{$}", hanleMainpage)
+	// for _, tmp := range theTemplates.Templates() {
+	// 	fmt.Println(tmp.Name())
+	// }
+	http.HandleFunc("GET /{$}", hanleMainPage)
+	// http.HandleFunc("GET /artists{$}", hanleArtistsPage)
 
 	log.Panicln(http.ListenAndServe(":8080", nil))
 }
