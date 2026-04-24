@@ -1,7 +1,3 @@
-{{$tag := "ul" -}}
-{{if .Ordered -}}
-{{$stag = "ol"}}
-{{end}}
-<{{$tag}} class="{{.Name}}">
-    {{range .Value}}<li>{{.}}</li>{{end}}
-</{{$tag}}>
+<ul class="{{.Name}}">
+    {{range .Array}}<li>{{.}}</li>{{end}}
+</ul>
