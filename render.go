@@ -46,8 +46,7 @@ func renderApiLink(name string, data any) (linkHTML template.HTML) {
 		log.Println("This is not an api link string of API: "+API, string(debug.Stack()))
 		return
 	}
-	data = apiLinkString(url)
-	linkHTML = renderType[apiLinkString]("apilinkstring.html")(name, data)
+	linkHTML = renderType[string]("apilinkstring.html")(name, url)
 	return
 }
 
@@ -97,6 +96,9 @@ func renderObj(objName string, data any) (objHTML template.HTML) {
 	objVal := reflect.ValueOf(data)
 	if objVal.Type().Kind() != reflect.Struct {
 		log.Println("The object data was not passed as a struct")
+		return ""
+	}
+	if objVal == reflect.Zero(objVal.Type()) {
 		return ""
 	}
 

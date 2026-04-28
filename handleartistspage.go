@@ -59,7 +59,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			}
-			err = json.Unmarshal(responseBody, &artistsDetails[i-1])
+			err = json.Unmarshal(responseBody, &artistsDetails[i-firstId])
 			if err != nil {
 				log.Println(err, string(debug.Stack()))
 				return
@@ -67,7 +67,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		}(i)
 	}
 	wg.Wait()
-	artistsPageList := renderArr("artists-page", artistsDetails)
+	artistsPageList := renderArr("artist-list", artistsDetails)
 
 	page.Title = "Artist Page"
 	page.Content = artistsPageList

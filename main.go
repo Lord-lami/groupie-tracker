@@ -26,16 +26,6 @@ var page struct {
 	Content template.HTML
 }
 
-type String struct {
-	Name  string
-	Value string
-}
-
-type Link struct {
-	Name string
-	Url  string
-}
-
 type ignored any
 type dateString string
 type apiLinkString string
@@ -95,9 +85,7 @@ func hanleMainPage(w http.ResponseWriter, r *http.Request) {
 	// Render the main page on the browser
 	page.Title = "Stalk A Band"
 	page.Content = indexPageDiv
-	// indexPageDiv.Reset()
 	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
-	// theTemplates.ExecuteTemplate(&indexPageDiv, "layout.html", page)
 	if err != nil {
 		log.Println(err, debug.Stack())
 		return
