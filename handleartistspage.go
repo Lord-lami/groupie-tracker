@@ -2,79 +2,65 @@ package main
 
 import (
 	"encoding/json"
-	"html/template"
+	"log"
 	"net/http"
+	"runtime/debug"
 	"strconv"
-	"strings"
 	"sync"
 )
 
 type artistDetail struct {
-	Id           ignored   `json:"id"`
-	Image        imageLinkString   `json:"image"`
-	Name         string   `json:"name"`
-	Members      []string `json:"members"`
-	CreationDate string   `json:"creationDate"`
-	FirstAlbum   string   `json:"firstAlbum"`
+	Id           ignored         `json:"id"`
+	Image        imageLinkString `json:"image"`
+	Name         string          `json:"name"`
+	Members      []string        `json:"members"`
+	CreationDate int             `json:"creationDate"`
+	FirstAlbum   dateString      `json:"firstAlbum"`
 	Locations    apiLinkString   `json:"locations"`
 	ConcertDates apiLinkString   `json:"concertDates"`
 	Relations    apiLinkString   `json:"relations"`
 }
 
-func getArtistsPage(w http.ResponseWriter, r *http.Request) {
-
-	nbrOfItemsPerPage := 6
-	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
-	for i := range nbrOfItemsPerPage {
-		go func(i int) {
-			id := strconv.Itoa((pageNum-1)*nbrOfItemsPerPage + (i + 1))
-			responseBody := groupieTrackerApiResponseBody("/artists/" + id)
-
-			// fmt.Printf("As String: %s\n", body)
-			if err := json.Unmarshal(responseBody, &artistsDetails[i]); err != nil {
-				panic(err)
-			}
-		}(i)
-
-		// fmt.Println()
-		// fmt.Printf("%#v\n", artistDetails)
-
-	}
-	var content strings.Builder
-	err := theTemplates.ExecuteTemplate(&content, "artists.html", artistsDetails)
-	if err != nil {
-		panic(err)
-	}
-	page.Title = "Artists"
-	page.Content = template.HTML(content.String())
-	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func hanleArtistsPage(w http.ResponseWriter, r *http.Request) {
+func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	// Receive and validate the page number
-	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
+	pageNumStr := r.URL.Query().Get("page")
+	if pageNumStr == "" {
+		http.Redirect(w, r, "/artists?page=1", http.StatusSeeOther)
+		return
+	}
+	pageNumInt, err := strconv.Atoi(pageNumStr)
 	if err != nil {
-		panic(err)
+		log.Println(err, debug.Stack())
+		return
 	}
 
 	// Get the response body from the API for 6 artists per page
 	nbrOfItemsPerPage := 6
-	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
 	var wg sync.WaitGroup
-	for i := range nbrOfItemsPerPage {
+	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
+	firstId := (pageNumInt-1)*nbrOfItemsPerPage + 1
+	lastId := pageNumInt * nbrOfItemsPerPage
+	for i := firstId; i <= lastId; i++ {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			id := strconv.Itoa(pageNum*nbrOfItemsPerPage + (i + 1))
-			err := json.Unmarshal(groupieTrackerApiResponseBody("/artists/"+id),
-				&artistsDetails[i])
+			id := strconv.Itoa(i)
+			err := json.Unmarshal(getApiResponseBody("/artists/"+id),
+				&artistsDetails[i-1])
 			if err != nil {
-				panic(err)
+				log.Println(err, debug.Stack())
+				return
 			}
 		}(i)
 	}
 	wg.Wait()
+	artistsPageList := renderArr("artists-page", artistsDetails)
+
+	page.Title = "Artist Page"
+	page.Content = artistsPageList
+	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
+	if err != nil {
+		log.Println(err, debug.Stack())
+		return
+	}
 }

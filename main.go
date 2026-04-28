@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 )
 
 var API string = "https://groupietrackers.herokuapp.com/api"
@@ -19,31 +20,31 @@ var theTemplates *template.Template = template.Must(template.ParseFS(templateFS,
 	"*/*.html",
 	"*/*/*.html"))
 
-
 var page struct {
 	Title   string
 	Content template.HTML
 }
 
 type String struct {
-	Name string
+	Name  string
 	Value string
 }
+
+
 
 type Link struct {
 	Name string
 	Url  string
 }
 
-type object struct {
-	Name     string
-	Elements []template.HTML
-}
 
+
+
+
+type ignored any
 type dateString string
 type apiLinkString string
 type imageLinkString string
-type ignored any
 
 type mainPageDataHolder struct {
 	Artists   apiLinkString `json:"artists"`
@@ -52,17 +53,19 @@ type mainPageDataHolder struct {
 	Relation  apiLinkString `json:"relation"`
 }
 
-func groupieTrackerApiResponseBody(path string) (body []byte) {
+func getApiResponseBody(path string) (body []byte) {
 	apiLink := API + path
 	resp, err := http.Get(apiLink)
 	if err != nil {
-		panic(err)
+		log.Println(err, debug.Stack())
+		return []byte{}
 	}
 	defer resp.Body.Close()
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		log.Println(err, debug.Stack())
+		return []byte{}
 	}
 	return
 }
@@ -70,24 +73,26 @@ func groupieTrackerApiResponseBody(path string) (body []byte) {
 func hanleMainPage(w http.ResponseWriter, r *http.Request) {
 	// Get the response body from the API
 	mainPageData := mainPageDataHolder{}
-	responseBody := groupieTrackerApiResponseBody("")
+	responseBody := getApiResponseBody("")
 	err := json.Unmarshal(responseBody, &mainPageData)
 	if err != nil {
-		panic(err)
+		log.Println(err, debug.Stack())
+		return
 	}
 
 	// Render the links from the API as html anchor tags
 	// that link to their display page
-	indexPageDiv := renderApiObject("main-page", &mainPageData)
+	indexPageDiv := renderObj("main-page", mainPageData)
 
 	// Render the main page on the browser
 	page.Title = "Stalk A Band"
-	page.Content = template.HTML(indexPageDiv)
+	page.Content = indexPageDiv
 	// indexPageDiv.Reset()
 	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
 	// theTemplates.ExecuteTemplate(&indexPageDiv, "layout.html", page)
 	if err != nil {
-		panic(err)
+		log.Println(err, debug.Stack())
+		return
 	}
 	// fmt.Println(indexPageDiv.String())
 }
@@ -97,9 +102,8 @@ func main() {
 	// 	fmt.Println(tmp.Name())
 	// }
 	http.HandleFunc("GET /{$}", hanleMainPage)
-	http.Handle("GET /artists{$}", http.RedirectHandler("/artists?page=1", http.StatusPermanentRedirect))
-	http.HandleFunc("GET /artists?page=", hanleArtistsPage)
-	
+	http.HandleFunc("GET /artists", handleArtistsPage)
 
-	log.Panicln(http.ListenAndServe(":8080", nil))
+	log.Println("Server running on port 8080")
+	log.Println(http.ListenAndServe(":8080", nil))
 }
