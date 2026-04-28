@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strconv"
 	"sync"
@@ -30,7 +31,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	pageNumInt, err := strconv.Atoi(pageNumStr)
 	if err != nil {
-		log.Println(err, debug.Stack())
+		log.Println(err, string(debug.Stack()))
 		return
 	}
 
@@ -45,10 +46,22 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		go func(i int) {
 			defer wg.Done()
 			id := strconv.Itoa(i)
-			err := json.Unmarshal(getApiResponseBody("/artists/"+id),
-				&artistsDetails[i-1])
+			responseBody, err := getApiResponseBody("/artists/" + id)
 			if err != nil {
-				log.Println(err, debug.Stack())
+				switch err := err.(type) {
+				case *url.Error:
+					if err.Timeout() {
+						w.WriteHeader(http.StatusRequestTimeout)
+					} else {
+						w.WriteHeader(http.StatusServiceUnavailable)
+					}
+				default:
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			}
+			err = json.Unmarshal(responseBody, &artistsDetails[i-1])
+			if err != nil {
+				log.Println(err, string(debug.Stack()))
 				return
 			}
 		}(i)
@@ -60,7 +73,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	page.Content = artistsPageList
 	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
-		log.Println(err, debug.Stack())
+		log.Println(err, string(debug.Stack()))
 		return
 	}
 }

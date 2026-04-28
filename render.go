@@ -31,7 +31,7 @@ func renderType[T any](templateName string) func(name string, data any) (dataHTM
 		var err error
 		dataHTML, err = renderData(templateData, templateName)
 		if err != nil {
-			log.Println(err, debug.Stack())
+			log.Println(err, string(debug.Stack()))
 			return
 		}
 		return
@@ -43,10 +43,10 @@ func renderApiLink(name string, data any) (linkHTML template.HTML) {
 	var ok bool
 	url, ok = strings.CutPrefix(url, API)
 	if !ok {
-		log.Println("This is not an api link string of API: "+API, debug.Stack())
+		log.Println("This is not an api link string of API: "+API, string(debug.Stack()))
 		return
 	}
-	data = url
+	data = apiLinkString(url)
 	linkHTML = renderType[apiLinkString]("apilinkstring.html")(name, data)
 	return
 }
@@ -56,7 +56,7 @@ func renderDateString(name string, data any) (dateStringHTML template.HTML) {
 	raw = strings.ReplaceAll(raw, "*", "")
 	date, err := time.Parse("02-01-2006", raw)
 	if err != nil {
-		log.Println(err, debug.Stack())
+		log.Println(err, string(debug.Stack()))
 		return
 	}
 	raw = date.Format(time.DateOnly)
@@ -72,6 +72,7 @@ func renderDateString(name string, data any) (dateStringHTML template.HTML) {
 type RenderFunc func(name string, data any) template.HTML
 
 var RenderStaticType map[string]RenderFunc = map[string]RenderFunc{
+	reflect.TypeFor[ignored]().String():    func(name string, data any) template.HTML { return "" },
 	"int":                                  renderType[int]("int.html"),
 	"string":                               renderType[string]("string.html"),
 	"bool":                                 renderType[bool]("bool.html"),
@@ -102,13 +103,18 @@ func renderObj(objName string, data any) (objHTML template.HTML) {
 	var wg sync.WaitGroup
 	elements := make([]template.HTML, objVal.NumField())
 	for i := range objVal.NumField() {
+		if objVal.Field(i).Type().String() == reflect.TypeFor[ignored]().String() {
+			continue
+		}
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
 			renderFunc := selectRenderFuncFor(objVal.Field(i))
 			name := objVal.Type().Field(i).Name
-			// fmt.Println("The fieild is: " + name)
 			data := objVal.Field(i).Interface()
+			if renderFunc == nil {
+				log.Println(name)
+			}
 			element := renderFunc(name, data)
 			elements[i] = element
 		}(i)
@@ -123,16 +129,20 @@ func renderObj(objName string, data any) (objHTML template.HTML) {
 func renderArr(arrName string, data any) (arrHTML template.HTML) {
 	if reflect.TypeOf(data).Kind() != reflect.Array &&
 		reflect.TypeOf(data).Kind() != reflect.Slice {
-		log.Panicln("array data was not passed as a slice or array")
+		log.Println("array data was not passed as a slice or array", string(debug.Stack()))
 		return ""
 	}
 
 	arrVal := reflect.ValueOf(data)
+	// fmt.Println(arrVal.Interface())
 	renderFunc := selectRenderFuncFor(arrVal.Index(0))
 	var wg sync.WaitGroup
 	elements := make([]template.HTML, arrVal.Len())
 
 	for i := range arrVal.Len() {
+		if arrVal.Index(i).Type().String() == reflect.TypeFor[ignored]().String() {
+			continue
+		}
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()

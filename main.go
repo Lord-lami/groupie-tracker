@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime/debug"
 )
@@ -30,16 +31,10 @@ type String struct {
 	Value string
 }
 
-
-
 type Link struct {
 	Name string
 	Url  string
 }
-
-
-
-
 
 type ignored any
 type dateString string
@@ -53,19 +48,20 @@ type mainPageDataHolder struct {
 	Relation  apiLinkString `json:"relation"`
 }
 
-func getApiResponseBody(path string) (body []byte) {
+func getApiResponseBody(path string) (body []byte, err error) {
 	apiLink := API + path
-	resp, err := http.Get(apiLink)
+	var resp *http.Response
+	resp, err = http.Get(apiLink)
 	if err != nil {
-		log.Println(err, debug.Stack())
-		return []byte{}
+		log.Println(err, string(debug.Stack()))
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err, debug.Stack())
-		return []byte{}
+		log.Println(err, string(debug.Stack()))
+		return nil, err
 	}
 	return
 }
@@ -73,10 +69,22 @@ func getApiResponseBody(path string) (body []byte) {
 func hanleMainPage(w http.ResponseWriter, r *http.Request) {
 	// Get the response body from the API
 	mainPageData := mainPageDataHolder{}
-	responseBody := getApiResponseBody("")
-	err := json.Unmarshal(responseBody, &mainPageData)
+	responseBody, err := getApiResponseBody("")
 	if err != nil {
-		log.Println(err, debug.Stack())
+		switch err := err.(type) {
+		case *url.Error:
+			if err.Timeout() {
+				w.WriteHeader(http.StatusRequestTimeout)
+			} else {
+				w.WriteHeader(http.StatusServiceUnavailable)
+			}
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+	err = json.Unmarshal(responseBody, &mainPageData)
+	if err != nil {
+		log.Println(err, string(debug.Stack()))
 		return
 	}
 
