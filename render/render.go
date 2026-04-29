@@ -36,11 +36,7 @@ func TypeString[T any]() string {
 }
 
 func RenderType[T any](templateName string) RenderFunc {
-	return func(name string, data any) (dataHTML template.HTML) {
-		dataVal := reflect.ValueOf(data)
-		if dataVal.Comparable() && data == reflect.Zero(dataVal.Type()).Interface() {
-			return ""
-		}
+	return func(name string, data any) (dataHTML template.HTML) {		
 		value := data.(T)
 		var templateData struct {
 			Name  string

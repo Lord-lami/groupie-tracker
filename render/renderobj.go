@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"log"
 	"reflect"
-	"slices"
 	"sync"
 )
 
@@ -35,10 +34,6 @@ func RenderObj(objName string, data any) (objHTML template.HTML) {
 		}(i)
 	}
 	wg.Wait()
-
-	if slices.Equal(elements, make([]template.HTML, objVal.NumField())) {
-		return ""
-	}
 
 	// Render the html links as part of the object div
 	objHTML = RenderType[[]template.HTML]("object.html")(objName, elements)

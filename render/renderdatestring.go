@@ -10,9 +10,6 @@ import (
 
 func renderDateString(name string, data any) (dateStringHTML template.HTML) {
 	raw := string(data.(DateString))
-	if raw == "" {
-		return ""
-	}
 	raw = strings.ReplaceAll(raw, "*", "")
 	date, err := time.Parse("02-01-2006", raw)
 	if err != nil {
