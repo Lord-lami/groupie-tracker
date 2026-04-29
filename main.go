@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"html/template"
 	"io"
 	"io/fs"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime/debug"
 )
@@ -57,40 +55,7 @@ func getApiResponseBody(path string) (body []byte, err error) {
 }
 
 func hanleMainPage(w http.ResponseWriter, r *http.Request) {
-	// Get the response body from the API
-	mainPageData := mainPageDataHolder{}
-	responseBody, err := getApiResponseBody("")
-	if err != nil {
-		switch err := err.(type) {
-		case *url.Error:
-			if err.Timeout() {
-				w.WriteHeader(http.StatusRequestTimeout)
-			} else {
-				w.WriteHeader(http.StatusServiceUnavailable)
-			}
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	}
-	err = json.Unmarshal(responseBody, &mainPageData)
-	if err != nil {
-		log.Println(err, string(debug.Stack()))
-		return
-	}
-
-	// Render the links from the API as html anchor tags
-	// that link to their display page
-	indexPageDiv := renderObj("main-page", mainPageData)
-
-	// Render the main page on the browser
-	page.Title = "Stalk A Band"
-	page.Content = indexPageDiv
-	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
-	if err != nil {
-		log.Println(err, debug.Stack())
-		return
-	}
-	// fmt.Println(indexPageDiv.String())
+	http.Redirect(w, r, "/artists?page=1", http.StatusSeeOther)
 }
 
 func main() {

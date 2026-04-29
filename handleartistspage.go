@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 	"net/url"
@@ -52,11 +53,14 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 				case *url.Error:
 					if err.Timeout() {
 						w.WriteHeader(http.StatusRequestTimeout)
+						return
 					} else {
 						w.WriteHeader(http.StatusServiceUnavailable)
+						return
 					}
 				default:
 					w.WriteHeader(http.StatusInternalServerError)
+					return
 				}
 			}
 			err = json.Unmarshal(responseBody, &artistsDetails[i-firstId])
@@ -67,10 +71,48 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		}(i)
 	}
 	wg.Wait()
-	artistsPageList := renderArr("artist-list", artistsDetails)
 
+	filteredArtistsDetails := []artistDetail{}
+	for _, ad := range artistsDetails {
+		if ad.Id.(float64) != 0 {
+			filteredArtistsDetails = append(filteredArtistsDetails, ad)
+		}
+	}
+
+	var artistsPageList, pageNavigatorDiv template.HTML
+	if len(filteredArtistsDetails) != 0 {
+		artistsPageList = renderArr("artist-list", filteredArtistsDetails)
+		
+		type pageNavLinkString string
+		var pageNavigator struct {
+			LeftArrow, PageNumber, RightArrow pageNavLinkString
+		}
+		if pageNumInt > 1 {
+			pageNavigator.LeftArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt-1))
+		}
+		pageNavigator.PageNumber = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt))
+		if len(filteredArtistsDetails) == nbrOfItemsPerPage {
+			pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
+		}
+		RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
+			linkText := ""
+			switch name {
+			case "LeftArrow":
+				linkText = "<"
+			case "PageNumber":
+				linkText = pageNumStr
+			case "RightArrow":
+				linkText = ">"
+			}
+			return RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
+		}
+		pageNavigatorDiv = renderObj("page-navigator", pageNavigator)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	page.Title = "Artist Page"
-	page.Content = artistsPageList
+	page.Content = artistsPageList + pageNavigatorDiv
 	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
