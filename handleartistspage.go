@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"groupie-tracker/render"
 	"html/template"
 	"log"
 	"net/http"
@@ -12,18 +13,21 @@ import (
 )
 
 type artistDetail struct {
-	Id           ignored         `json:"id"`
-	Image        imageLinkString `json:"image"`
-	Name         string          `json:"name"`
-	Members      []string        `json:"members"`
-	CreationDate int             `json:"creationDate"`
-	FirstAlbum   dateString      `json:"firstAlbum"`
-	Locations    apiLinkString   `json:"locations"`
-	ConcertDates apiLinkString   `json:"concertDates"`
-	Relations    apiLinkString   `json:"relations"`
+	Id           render.Ignored         `json:"id"`
+	Image        render.ImageLinkString `json:"image"`
+	Name         string                 `json:"name"`
+	Members      []string               `json:"members"`
+	CreationDate int                    `json:"creationDate"`
+	FirstAlbum   render.DateString      `json:"firstAlbum"`
+	Locations    apiLinkString          `json:"locations"`
+	ConcertDates apiLinkString          `json:"concertDates"`
+	Relations    apiLinkString          `json:"relations"`
 }
 
+// renderApiLink function is in renderapilink.go
+
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
+	render.RenderTypeFunc[render.TypeString[apiLinkString]()] = renderApiLink
 	// Receive and validate the page number
 	pageNumStr := r.URL.Query().Get("page")
 	if pageNumStr == "" {
@@ -81,8 +85,8 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 
 	var artistsPageList, pageNavigatorDiv template.HTML
 	if len(filteredArtistsDetails) != 0 {
-		artistsPageList = renderArr("artist-list", filteredArtistsDetails)
-		
+		artistsPageList = render.RenderArr("artist-list", filteredArtistsDetails)
+
 		type pageNavLinkString string
 		var pageNavigator struct {
 			LeftArrow, PageNumber, RightArrow pageNavLinkString
@@ -94,7 +98,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		if len(filteredArtistsDetails) == nbrOfItemsPerPage {
 			pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
 		}
-		RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
+		render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
 			linkText := ""
 			switch name {
 			case "LeftArrow":
@@ -104,16 +108,16 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 			case "RightArrow":
 				linkText = ">"
 			}
-			return RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
+			return render.RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
 		}
-		pageNavigatorDiv = renderObj("page-navigator", pageNavigator)
+		pageNavigatorDiv = render.RenderObj("page-navigator", pageNavigator)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	page.Title = "Artist Page"
 	page.Content = artistsPageList + pageNavigatorDiv
-	err = theTemplates.ExecuteTemplate(w, "layout.html", page)
+	err = render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
 		return
