@@ -45,6 +45,7 @@ func main() {
 	// }
 	http.HandleFunc("GET /{$}", hanleMainPage)
 	http.HandleFunc("GET /artists", handleArtistsPage)
+	http.HandleFunc("GET /artists/{id}", handleAnArtistPage)
 
 	log.Println("Server running on port 8080")
 	log.Println(http.ListenAndServe(":8080", nil))

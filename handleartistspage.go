@@ -53,19 +53,18 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 			id := strconv.Itoa(i)
 			responseBody, err := getApiResponseBody("/artists/" + id)
 			if err != nil {
+				log.Println(err, string(debug.Stack()))
 				switch err := err.(type) {
 				case *url.Error:
 					if err.Timeout() {
 						w.WriteHeader(http.StatusRequestTimeout)
-						return
 					} else {
 						w.WriteHeader(http.StatusServiceUnavailable)
-						return
 					}
 				default:
 					w.WriteHeader(http.StatusInternalServerError)
-					return
 				}
+				return
 			}
 			err = json.Unmarshal(responseBody, &artistsDetails[i-firstId])
 			if err != nil {
