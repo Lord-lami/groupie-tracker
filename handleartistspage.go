@@ -53,7 +53,6 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 			id := strconv.Itoa(i)
 			responseBody, err := getApiResponseBody("/artists/" + id)
 			if err != nil {
-				log.Println(err, string(debug.Stack()))
 				switch err := err.(type) {
 				case *url.Error:
 					if err.Timeout() {
@@ -68,6 +67,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(http.StatusInternalServerError)
 					}
 				}
+				log.Println(err, string(debug.Stack()))
 				return
 			}
 			err = json.Unmarshal(responseBody, &artistsDetails[i-firstId])
@@ -98,7 +98,8 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 			pageNavigator.LeftArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt-1))
 		}
 		pageNavigator.PageNumber = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt))
-		if len(filteredArtistsDetails) == nbrOfItemsPerPage {
+		_, err := getApiResponseBody("/artists/" + strconv.Itoa(lastId+1))
+		if err == nil {
 			pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
 		}
 		render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
