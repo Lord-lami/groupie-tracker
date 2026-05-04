@@ -19,7 +19,9 @@ type artistDetail struct {
 	Details render.LinkString      `json:"-"`
 }
 
-func renderPageNav(pageNumInt, nbrOfItemsPerPage int) template.HTML {
+var nbrOfItemsPerPage int = 6
+
+func renderPageNav(pageNumInt int) template.HTML {
 	type pageNavLinkString string
 	var pageNavigator struct {
 		LeftArrow, PageNumber, RightArrow pageNavLinkString
@@ -65,7 +67,6 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the response body from the API for 6 artists per page
-	nbrOfItemsPerPage := 6
 	var wg sync.WaitGroup
 	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
 	firstId := (pageNumInt-1)*nbrOfItemsPerPage + 1
@@ -114,7 +115,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	var artistsPageList, pageNavigatorDiv template.HTML
 	if len(filteredArtistsDetails) != 0 {
 		artistsPageList = render.RenderArr("artist-list", filteredArtistsDetails)
-		pageNavigatorDiv = renderPageNav(pageNumInt, nbrOfItemsPerPage)
+		pageNavigatorDiv = renderPageNav(pageNumInt)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 		return
