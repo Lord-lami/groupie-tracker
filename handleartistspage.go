@@ -13,10 +13,42 @@ import (
 )
 
 type artistDetail struct {
-	Id           render.Ignored         `json:"id"`
-	Image        render.ImageLinkString `json:"image"`
-	Name         string                 `json:"name"`
-	Details      render.LinkString      `json:"-"`
+	Id      render.Ignored         `json:"id"`
+	Image   render.ImageLinkString `json:"image"`
+	Name    string                 `json:"name"`
+	Details render.LinkString      `json:"-"`
+}
+
+func renderPageNav(pageNumInt, nbrOfItemsPerPage int) template.HTML {
+	type pageNavLinkString string
+	var pageNavigator struct {
+		LeftArrow, PageNumber, RightArrow pageNavLinkString
+	}
+	pageNumStr := strconv.Itoa(pageNumInt)
+	lastId := pageNumInt * nbrOfItemsPerPage
+	if pageNumInt > 1 {
+		pageNavigator.LeftArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt-1))
+	}
+	pageNavigator.PageNumber = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt))
+	_, err := getApiResponseBody("/artists/" + strconv.Itoa(lastId+1))
+	if err == nil {
+		pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
+	}
+	render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
+		linkText := ""
+		if data.(pageNavLinkString) != "" {
+			switch name {
+			case "LeftArrow":
+				linkText = "<"
+			case "PageNumber":
+				linkText = pageNumStr
+			case "RightArrow":
+				linkText = ">"
+			}
+		}
+		return render.RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
+	}
+	return render.RenderObj("page-navigator", pageNavigator)
 }
 
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
@@ -83,34 +115,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	var artistsPageList, pageNavigatorDiv template.HTML
 	if len(filteredArtistsDetails) != 0 {
 		artistsPageList = render.RenderArr("artist-list", filteredArtistsDetails)
-
-		type pageNavLinkString string
-		var pageNavigator struct {
-			LeftArrow, PageNumber, RightArrow pageNavLinkString
-		}
-		if pageNumInt > 1 {
-			pageNavigator.LeftArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt-1))
-		}
-		pageNavigator.PageNumber = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt))
-		_, err := getApiResponseBody("/artists/" + strconv.Itoa(lastId+1))
-		if err == nil {
-			pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
-		}
-		render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
-			linkText := ""
-			if data.(pageNavLinkString) != "" {
-				switch name {
-				case "LeftArrow":
-					linkText = "<"
-				case "PageNumber":
-					linkText = pageNumStr
-				case "RightArrow":
-					linkText = ">"
-				}
-			}
-			return render.RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
-		}
-		pageNavigatorDiv = render.RenderObj("page-navigator", pageNavigator)
+		pageNavigatorDiv = renderPageNav(pageNumInt, nbrOfItemsPerPage)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 		return
