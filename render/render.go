@@ -1,10 +1,9 @@
 package render
 
 import (
+	"embed"
 	"html/template"
-	"io/fs"
 	"log"
-	"os"
 	"reflect"
 	"runtime/debug"
 )
@@ -16,12 +15,13 @@ type LinkString string
 
 type RenderFunc func(name string, data any) template.HTML
 
-var templateFS fs.FS = os.DirFS("templates")
+//go:embed templates/*
+var templateFS embed.FS
 
 var TheTemplates *template.Template = template.Must(template.ParseFS(templateFS,
-	"*.html",
-	"*/*.html",
-	"*/*/*.html"))
+	"templates/*.html",
+	"templates/*/*.html",
+	"templates/*/*/*.html"))
 
 var RenderTypeFunc map[string]RenderFunc = map[string]RenderFunc{
 	TypeString[Ignored]():         func(name string, data any) template.HTML { return "" },

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"html/template"
 	"io"
@@ -11,12 +12,18 @@ import (
 
 var API string = "https://groupietrackers.herokuapp.com/api"
 
+var emptyBody error = errors.New("Empty Response Body")
+
+//go:embed templates/*
+var templatesFolder embed.FS
+
+var templates *template.Template = template.Must(template.ParseFS(templatesFolder, 
+	"templates/*.html"))
+
 var page struct {
 	Title   string
 	Content template.HTML
 }
-
-var emptyBody error = errors.New("Empty Response Body")
 
 func getApiResponseBody(path string) (body []byte, err error) {
 	apiLink := API + path

@@ -84,7 +84,7 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 
 	page.Title = artistDetail.Name.(string)
 	page.Content = artistDetailHTML + artistRelationHTML
-	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
+	err := templates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err, string(debug.Stack()))

@@ -52,7 +52,6 @@ func renderPageNav(pageNumInt, nbrOfItemsPerPage int) template.HTML {
 }
 
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
-	render.RenderTypeFunc[render.TypeString[apiLinkString]()] = renderApiLink
 	// Receive and validate the page number
 	pageNumStr := r.URL.Query().Get("page")
 	if pageNumStr == "" {
@@ -122,7 +121,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	page.Title = "Artist Page"
 	page.Content = artistsPageList + pageNavigatorDiv
-	err = render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
+	err = templates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err, string(debug.Stack()))
