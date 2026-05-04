@@ -17,7 +17,7 @@ func RenderArr(arrName string, data any) (arrHTML template.HTML) {
 	}
 
 	arrVal := reflect.ValueOf(data)
-	renderFunc := selectRenderFuncFor(arrVal.Index(0))
+	renderFunc := selectRenderFuncFor(reflect.Zero(arrVal.Type().Elem()))
 	var wg sync.WaitGroup
 	elements := make([]template.HTML, arrVal.Len())
 

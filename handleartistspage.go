@@ -16,15 +16,8 @@ type artistDetail struct {
 	Id           render.Ignored         `json:"id"`
 	Image        render.ImageLinkString `json:"image"`
 	Name         string                 `json:"name"`
-	Members      []string               `json:"members"`
-	CreationDate int                    `json:"creationDate"`
-	FirstAlbum   render.DateString      `json:"firstAlbum"`
-	Locations    apiLinkString          `json:"locations"`
-	ConcertDates apiLinkString          `json:"concertDates"`
-	Relations    apiLinkString          `json:"relations"`
+	Details      render.LinkString      `json:"-"`
 }
-
-// renderApiLink function is in renderapilink.go
 
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	render.RenderTypeFunc[render.TypeString[apiLinkString]()] = renderApiLink
@@ -46,11 +39,11 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
 	firstId := (pageNumInt-1)*nbrOfItemsPerPage + 1
 	lastId := pageNumInt * nbrOfItemsPerPage
-	for i := firstId; i <= lastId; i++ {
+	for i := 0; i <= lastId-firstId; i++ {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			id := strconv.Itoa(i)
+			id := strconv.Itoa(firstId + i)
 			responseBody, err := getApiResponseBody("/artists/" + id)
 			if err != nil {
 				switch err := err.(type) {
@@ -70,11 +63,12 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 				log.Println(err, string(debug.Stack()))
 				return
 			}
-			err = json.Unmarshal(responseBody, &artistsDetails[i-firstId])
+			err = json.Unmarshal(responseBody, &artistsDetails[i])
 			if err != nil {
 				log.Println(err, string(debug.Stack()))
 				return
 			}
+			artistsDetails[i].Details = render.LinkString("/artists/" + id)
 		}(i)
 	}
 	wg.Wait()

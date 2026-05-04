@@ -12,6 +12,7 @@ import (
 type Ignored any
 type DateString string
 type ImageLinkString string
+type LinkString string
 
 type RenderFunc func(name string, data any) template.HTML
 
@@ -23,12 +24,13 @@ var TheTemplates *template.Template = template.Must(template.ParseFS(templateFS,
 	"*/*/*.html"))
 
 var RenderTypeFunc map[string]RenderFunc = map[string]RenderFunc{
-	reflect.TypeFor[Ignored]().String():    func(name string, data any) template.HTML { return "" },
-	"int":                                  RenderType[int]("int.html"),
-	"string":                               RenderType[string]("string.html"),
-	"bool":                                 RenderType[bool]("bool.html"),
-	reflect.TypeFor[DateString]().String(): renderDateString,
-	reflect.TypeFor[ImageLinkString]().String(): RenderType[ImageLinkString]("imagelinkstring.html"),
+	TypeString[Ignored]():         func(name string, data any) template.HTML { return "" },
+	"int":                         RenderType[int]("int.html"),
+	"string":                      RenderType[string]("string.html"),
+	"bool":                        RenderType[bool]("bool.html"),
+	TypeString[DateString]():      renderDateString,
+	TypeString[LinkString]():      RenderType[LinkString]("linkstring.html"),
+	TypeString[ImageLinkString](): RenderType[ImageLinkString]("imagelinkstring.html"),
 }
 
 func TypeString[T any]() string {
@@ -36,7 +38,7 @@ func TypeString[T any]() string {
 }
 
 func RenderType[T any](templateName string) RenderFunc {
-	return func(name string, data any) (dataHTML template.HTML) {		
+	return func(name string, data any) (dataHTML template.HTML) {
 		value := data.(T)
 		var templateData struct {
 			Name  string

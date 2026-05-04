@@ -18,7 +18,7 @@ type anArtistRelations struct {
 type anArtistDetail struct {
 	Id           render.Ignored         `json:"id"`
 	Image        render.ImageLinkString `json:"image"`
-	Name         string                 `json:"name"`
+	Name         render.Ignored         `json:"name"`
 	Members      []string               `json:"members"`
 	CreationDate int                    `json:"creationDate"`
 	FirstAlbum   render.DateString      `json:"firstAlbum"`
@@ -78,11 +78,11 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	if artistRelation.Id == nil || artistDetail.Id == nil {
 		return
 	}
-	artistDetailHTML := render.RenderObj(artistDetail.Name+" Details", artistDetail)
-	artistRelationHTML := render.RenderObj(artistDetail.Name+" Concert Locations and Dates",
+	artistDetailHTML := render.RenderObj(artistDetail.Name.(string)+" Details", artistDetail)
+	artistRelationHTML := render.RenderObj(artistDetail.Name.(string)+" Concert Locations and Dates",
 		artistRelation)
 
-	page.Title = artistDetail.Name
+	page.Title = artistDetail.Name.(string)
 	page.Content = artistDetailHTML + artistRelationHTML
 	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
