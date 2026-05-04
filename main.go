@@ -35,7 +35,7 @@ func getApiResponseBody(path string) (body []byte, err error) {
 	}
 
 	if string(body) == `{"id":0,"image":"","name":"","members":null,"creationDate":0,"firstAlbum":"","locations":"","concertDates":"","relations":""}`+"\n" {
-		log.Println("Empty response body")
+		log.Println("Empty response body for " + apiLink)
 		return nil, emptyBody
 	}
 	return
