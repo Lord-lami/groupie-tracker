@@ -118,6 +118,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	page.Content = artistsPageList + pageNavigatorDiv
 	err = render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err, string(debug.Stack()))
 		return
 	}

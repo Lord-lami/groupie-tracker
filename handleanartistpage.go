@@ -79,6 +79,14 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	if artistRelation.Id == nil || artistDetail.Id == nil {
 		return
 	}
-
+	artistDetailHTML := render.RenderObj(artistDetail.Name+" Details", artistDetail)
+	artistRelationHTML := render.RenderObj(artistDetail.Name+"Concert Locations and Dates",
+		artistRelation)
 	
+	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", artistDetailHTML+artistRelationHTML)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err, string(debug.Stack()))
+		return
+	}
 }
