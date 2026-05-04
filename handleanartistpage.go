@@ -26,10 +26,9 @@ type anArtistDetail struct {
 
 func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) {
 	respBody, err := getApiResponseBody(path)
+	
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
-		var nothing T
-		dataChan <- nothing
 		switch err := err.(type) {
 		case *url.Error:
 			if err.Timeout() {
@@ -38,17 +37,17 @@ func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) 
 				w.WriteHeader(http.StatusServiceUnavailable)
 			}
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
+			if err == emptyBody {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 		}
-		return
-	}
-	if string(respBody) == `{"id":0,"image":"","name":"","members":null,"creationDate":0,"firstAlbum":"","locations":"","concertDates":"","relations":""}` {
-		log.Println("Empty response body", string(debug.Stack()))
-		w.WriteHeader(http.StatusNotFound)
 		var nothing T
 		dataChan <- nothing
 		return
 	}
+
 	var dataStruct T
 	err = json.Unmarshal(respBody, dataStruct)
 	if err != nil {
@@ -82,7 +81,7 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	artistDetailHTML := render.RenderObj(artistDetail.Name+" Details", artistDetail)
 	artistRelationHTML := render.RenderObj(artistDetail.Name+"Concert Locations and Dates",
 		artistRelation)
-	
+
 	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", artistDetailHTML+artistRelationHTML)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

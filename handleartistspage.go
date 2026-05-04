@@ -62,7 +62,11 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(http.StatusServiceUnavailable)
 					}
 				default:
-					w.WriteHeader(http.StatusInternalServerError)
+					if err == emptyBody {
+						return
+					} else {
+						w.WriteHeader(http.StatusInternalServerError)
+					}
 				}
 				return
 			}
@@ -77,7 +81,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 
 	filteredArtistsDetails := []artistDetail{}
 	for _, ad := range artistsDetails {
-		if ad.Id.(float64) != 0 {
+		if ad.Id != render.Ignored(nil) {
 			filteredArtistsDetails = append(filteredArtistsDetails, ad)
 		}
 	}
@@ -99,13 +103,15 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		}
 		render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
 			linkText := ""
-			switch name {
-			case "LeftArrow":
-				linkText = "<"
-			case "PageNumber":
-				linkText = pageNumStr
-			case "RightArrow":
-				linkText = ">"
+			if data.(pageNavLinkString) != "" {
+				switch name {
+				case "LeftArrow":
+					linkText = "<"
+				case "PageNumber":
+					linkText = pageNumStr
+				case "RightArrow":
+					linkText = ">"
+				}
 			}
 			return render.RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
 		}

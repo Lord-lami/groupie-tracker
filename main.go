@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"html/template"
 	"io"
 	"log"
@@ -15,7 +16,7 @@ var page struct {
 	Content template.HTML
 }
 
-
+var emptyBody error = errors.New("Empty Response Body")
 
 func getApiResponseBody(path string) (body []byte, err error) {
 	apiLink := API + path
@@ -31,6 +32,11 @@ func getApiResponseBody(path string) (body []byte, err error) {
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
 		return nil, err
+	}
+
+	if string(body) == `{"id":0,"image":"","name":"","members":null,"creationDate":0,"firstAlbum":"","locations":"","concertDates":"","relations":""}`+"\n" {
+		log.Println("Empty response body")
+		return nil, emptyBody
 	}
 	return
 }
