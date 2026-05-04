@@ -26,7 +26,7 @@ type anArtistDetail struct {
 
 func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) {
 	respBody, err := getApiResponseBody(path)
-	
+
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
 		switch err := err.(type) {
@@ -49,7 +49,7 @@ func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) 
 	}
 
 	var dataStruct T
-	err = json.Unmarshal(respBody, dataStruct)
+	err = json.Unmarshal(respBody, &dataStruct)
 	if err != nil {
 		log.Println(err, string(debug.Stack()))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -79,10 +79,12 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	artistDetailHTML := render.RenderObj(artistDetail.Name+" Details", artistDetail)
-	artistRelationHTML := render.RenderObj(artistDetail.Name+"Concert Locations and Dates",
+	artistRelationHTML := render.RenderObj(artistDetail.Name+" Concert Locations and Dates",
 		artistRelation)
 
-	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", artistDetailHTML+artistRelationHTML)
+	page.Title = artistDetail.Name
+	page.Content = artistDetailHTML + artistRelationHTML
+	err := render.TheTemplates.ExecuteTemplate(w, "layout.html", page)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err, string(debug.Stack()))
