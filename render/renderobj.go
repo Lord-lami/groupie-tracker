@@ -36,6 +36,6 @@ func RenderObj(objName string, data any) (objHTML template.HTML) {
 	wg.Wait()
 
 	// Render the html links as part of the object div
-	objHTML = RenderType[[]template.HTML]("object.html")(objName, elements)
+	objHTML = NewRenderFunc[[]template.HTML]("object.html")(objName, elements)
 	return
 }

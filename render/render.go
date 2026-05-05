@@ -25,19 +25,23 @@ var TheTemplates *template.Template = template.Must(template.ParseFS(templateFS,
 
 var RenderTypeFunc map[string]RenderFunc = map[string]RenderFunc{
 	TypeString[Ignored]():         func(name string, data any) template.HTML { return "" },
-	"int":                         RenderType[int]("int.html"),
-	"string":                      RenderType[string]("string.html"),
-	"bool":                        RenderType[bool]("bool.html"),
+	"int":                         NewRenderFunc[int]("int.html"),
+	"string":                      NewRenderFunc[string]("string.html"),
+	"bool":                        NewRenderFunc[bool]("bool.html"),
 	TypeString[DateString]():      renderDateString,
-	TypeString[LinkString]():      RenderType[LinkString]("linkstring.html"),
-	TypeString[ImageLinkString](): RenderType[ImageLinkString]("imagelinkstring.html"),
+	TypeString[LinkString]():      NewRenderFunc[LinkString]("linkstring.html"),
+	TypeString[ImageLinkString](): NewRenderFunc[ImageLinkString]("imagelinkstring.html"),
 }
 
 func TypeString[T any]() string {
 	return reflect.TypeFor[T]().String()
 }
 
-func RenderType[T any](templateName string) RenderFunc {
+func MapTypeToRenderFunc[T any](f RenderFunc) {
+	RenderTypeFunc[TypeString[T]()] = f
+}
+
+func NewRenderFunc[T any](templateName string) RenderFunc {
 	return func(name string, data any) (dataHTML template.HTML) {
 		value := data.(T)
 		var templateData struct {

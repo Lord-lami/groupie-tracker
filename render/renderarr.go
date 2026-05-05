@@ -36,6 +36,6 @@ func RenderArr(arrName string, data any) (arrHTML template.HTML) {
 	wg.Wait()
 
 	// Render the html as part of the array list
-	arrHTML = RenderType[[]template.HTML]("array.html")(arrName, elements)
+	arrHTML = NewRenderFunc[[]template.HTML]("array.html")(arrName, elements)
 	return
 }

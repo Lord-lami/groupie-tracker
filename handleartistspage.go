@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "github.com/Lord-lami/render-html"
 	"encoding/json"
 	"groupie-tracker/render"
 	"html/template"
@@ -36,7 +37,7 @@ func renderPageNav(pageNumInt int) template.HTML {
 	if err == nil {
 		pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
 	}
-	render.RenderTypeFunc["main.pageNavLinkString"] = func(name string, data any) (pageNavLinkHTML template.HTML) {
+	render.MapTypeToRenderFunc[pageNavLinkString](func(name string, data any) (pageNavLinkHTML template.HTML) {
 		linkText := ""
 		if data.(pageNavLinkString) != "" {
 			switch name {
@@ -48,8 +49,8 @@ func renderPageNav(pageNumInt int) template.HTML {
 				linkText = ">"
 			}
 		}
-		return render.RenderType[pageNavLinkString]("linkstring.html")(linkText, data)
-	}
+		return render.NewRenderFunc[pageNavLinkString]("linkstring.html")(linkText, data)
+	})
 	return render.RenderObj("page-navigator", pageNavigator)
 }
 

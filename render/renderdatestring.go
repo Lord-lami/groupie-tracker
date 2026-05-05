@@ -22,6 +22,6 @@ func renderDateString(name string, data any) (dateStringHTML template.HTML) {
 		Raw     string
 		Display string
 	}
-	dateStringHTML = RenderType[DateData]("datestring.html")(name, DateData{raw, display})
+	dateStringHTML = NewRenderFunc[DateData]("datestring.html")(name, DateData{raw, display})
 	return
 }
