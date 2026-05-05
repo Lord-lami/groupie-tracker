@@ -79,9 +79,9 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	if artistRelation.Id == nil || artistDetail.Id == nil {
 		return
 	}
-	artistDetailHTML := render.RenderObj(artistDetail.Name.(string)+" Details", artistDetail)
-	artistRelationHTML := render.RenderObj(artistDetail.Name.(string)+" Concert Locations and Dates",
-		artistRelation)
+	artistDetailHTML := render.RenderObj("ArtistDetails", artistDetail)
+	artistRelationHTML := render.RenderMap("ConcertLocationsAndDates",
+		artistRelation.DatesLocations)
 
 	page.Title = artistDetail.Name.(string)
 	page.Content = artistDetailHTML + artistRelationHTML

@@ -1,8 +1,20 @@
 <table class="{{.Name}}">
     <thead>
-        <tr class="keys">{{range .Value.Keys}}<th scope="col">{{.}}</th>{{end}}</tr>
+        <tr class="keys">
+            {{- range .Value.Keys}}
+            <th scope="col">
+                {{.}}
+            </th>
+            {{end}}
+        </tr>
     </thead>
     <tbody>
-        <tr class="values">{{range .Value.Values}}<td>{{.}}</td>{{end}}</tr>
+        <tr class="values">
+            {{- range .Value.Values}}
+            <td>
+                {{.}}
+            </td>
+            {{end}}
+        </tr>
     </tbody>
 </table>
