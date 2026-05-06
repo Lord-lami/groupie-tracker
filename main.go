@@ -17,7 +17,7 @@ var emptyBody error = errors.New("Empty Response Body")
 //go:embed templates/*
 var templatesFolder embed.FS
 
-var templates *template.Template = template.Must(template.ParseFS(templatesFolder, 
+var templates *template.Template = template.Must(template.ParseFS(templatesFolder,
 	"templates/*.html"))
 
 var page struct {
@@ -56,6 +56,9 @@ func main() {
 	http.HandleFunc("GET /artists", handleArtistsPage)
 	http.HandleFunc("GET /artists/{id}", handleAnArtistPage)
 
+	// For CSS and favicon.ico
+	staticFileServer := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", staticFileServer))
 
 	log.Println("Server running on port 8080")
 	log.Println(http.ListenAndServe(":8080", nil))
