@@ -20,9 +20,45 @@ type anArtistDetail struct {
 	Id           render.Ignored         `json:"id"`
 	Image        render.ImageLinkString `json:"image"`
 	Name         render.Ignored         `json:"name"`
-	Members      []string               `json:"members"`
-	CreationDate int                    `json:"creationDate"`
-	FirstAlbum   render.DateString      `json:"firstAlbum"`
+	Members      labeledStringSlice     `json:"members"`
+	CreationDate labeledInt             `json:"creationDate"`
+	FirstAlbum   labeledDateString      `json:"firstAlbum"`
+}
+
+func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
+	render.MapTypeToRenderFunc[labeledStringSlice](renderLabeledStringSlice)
+	render.MapTypeToRenderFunc[labeledInt](renderLabeledInt)
+	render.MapTypeToRenderFunc[labeledDateString](renderLabeledDateString)
+
+	id := r.PathValue("id")
+	if _, err := strconv.Atoi(id); err != nil {
+		log.Println(err, string(debug.Stack()))
+		return
+	}
+
+	artistRelationChan := make(chan anArtistRelations)
+	go channelApiData(w, "/relation/"+id, artistRelationChan)
+
+	artistDetailChan := make(chan anArtistDetail)
+	go channelApiData(w, "/artists/"+id, artistDetailChan)
+
+	artistRelation := <-artistRelationChan
+	artistDetail := <-artistDetailChan
+	if artistRelation.Id == nil || artistDetail.Id == nil {
+		return
+	}
+	artistDetailHTML := render.RenderObj("ArtistDetails", artistDetail)
+	artistRelationHTML := render.RenderMap("ConcertLocationsAndDates",
+		artistRelation.DatesLocations)
+
+	page.Title = artistDetail.Name.(string)
+	page.Content = artistDetailHTML + artistRelationHTML
+	err := templates.ExecuteTemplate(w, "layout.html", page)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err, string(debug.Stack()))
+		return
+	}
 }
 
 func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) {
@@ -59,36 +95,4 @@ func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) 
 		return
 	}
 	dataChan <- dataStruct
-}
-
-func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if _, err := strconv.Atoi(id); err != nil {
-		log.Println(err, string(debug.Stack()))
-		return
-	}
-
-	artistRelationChan := make(chan anArtistRelations)
-	go channelApiData(w, "/relation/"+id, artistRelationChan)
-
-	artistDetailChan := make(chan anArtistDetail)
-	go channelApiData(w, "/artists/"+id, artistDetailChan)
-
-	artistRelation := <-artistRelationChan
-	artistDetail := <-artistDetailChan
-	if artistRelation.Id == nil || artistDetail.Id == nil {
-		return
-	}
-	artistDetailHTML := render.RenderObj("ArtistDetails", artistDetail)
-	artistRelationHTML := render.RenderMap("ConcertLocationsAndDates",
-		artistRelation.DatesLocations)
-
-	page.Title = artistDetail.Name.(string)
-	page.Content = artistDetailHTML + artistRelationHTML
-	err := templates.ExecuteTemplate(w, "layout.html", page)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(err, string(debug.Stack()))
-		return
-	}
 }

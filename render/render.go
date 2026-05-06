@@ -70,7 +70,8 @@ func selectRenderFuncFor(value reflect.Value) (renderFunc RenderFunc) {
 		case reflect.Map:
 			renderFunc = RenderMap
 		default:
-			panic("The type "+value.Type().Name()+" does not have a function mapped to it in RenderTypeFunc")
+			panic("The type " + value.Type().String() +
+				" does not have a function mapped to it in RenderTypeFunc map")
 		}
 	}
 	return
