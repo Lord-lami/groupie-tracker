@@ -1,4 +1,6 @@
-/* Reset & base styles */
+/* =======================
+   RESET & BASE
+======================= */
 * {
     margin: 0;
     padding: 0;
@@ -6,13 +8,15 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #0f172a;
-    color: #f1f5f9;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(180deg, #020617, #0f172a);
+    color: #e2e8f0;
     line-height: 1.6;
 }
 
-/* Navbar */
+/* =======================
+   NAVBAR
+======================= */
 nav {
     background: #020617;
     padding: 1rem 2rem;
@@ -22,28 +26,36 @@ nav {
 nav a {
     color: #38bdf8;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 nav a:hover {
-    text-decoration: underline;
+    color: #0ea5e9;
 }
 
-/* Title */
+/* =======================
+   HEADINGS
+======================= */
 h1 {
     text-align: center;
     margin: 2rem 0;
-    font-size: 2rem;
+    font-size: 2.2rem;
+    letter-spacing: 1px;
 }
 
-/* Container */
+/* =======================
+   CONTAINER
+======================= */
 .container {
     max-width: 1200px;
     margin: auto;
     padding: 1rem;
 }
 
-/* Artist list grid */
+/* =======================
+   ARTIST LIST (GRID PAGE)
+======================= */
 .artist-list {
     list-style: none;
     display: grid;
@@ -51,54 +63,162 @@ h1 {
     gap: 1.5rem;
 }
 
-/* Artist card */
 .artist-list li div {
     background: #1e293b;
     padding: 1rem;
     border-radius: 12px;
     text-align: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: 0.25s ease;
+    border: 1px solid transparent;
 }
 
 .artist-list li div:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-6px);
+    border-color: #38bdf8;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
 }
 
-/* Artist image */
+/* =======================
+   IMAGE (SHARED)
+======================= */
 .Image {
     width: 100%;
-    height: 200px;
+    height: 220px;
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 1rem;
 }
 
-/* Artist name */
+/* =======================
+   NAME + BUTTON
+======================= */
 .Name {
     display: block;
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 1.15rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
-/* Details button */
 .Details {
     display: inline-block;
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 1rem;
     background: #38bdf8;
     color: #020617;
     text-decoration: none;
     border-radius: 6px;
-    font-size: 0.9rem;
-    transition: background 0.2s ease;
+    font-size: 0.85rem;
+    transition: 0.2s ease;
 }
 
 .Details:hover {
     background: #0ea5e9;
 }
 
-/* Pagination */
+/* =======================
+   DETAILS PAGE
+======================= */
+.ArtistDetails {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 14px;
+    margin-bottom: 2rem;
+    display: grid;
+    gap: 1.5rem;
+    border: 1px solid #334155;
+}
+
+/* Bigger image for details */
+.ArtistDetails .Image {
+    height: auto;
+    max-height: 400px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Members list */
+.Members {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+}
+
+.Members li {
+    background: #0f172a;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    border: 1px solid #334155;
+}
+
+/* Info labels */
+.ArtistDetails strong {
+    color: #38bdf8;
+    margin-right: 0.3rem;
+}
+
+/* Dates */
+.CreationDate,
+.FirstAlbum {
+    font-weight: 500;
+}
+
+/* =======================
+   TABLE (CONCERTS)
+======================= */
+.ConcertLocationsAndDates {
+    width: 100%;
+    border-collapse: collapse;
+    overflow-x: auto;
+    display: block;
+    border-radius: 10px;
+    background: #1e293b;
+}
+
+.ConcertLocationsAndDates thead {
+    background: #020617;
+}
+
+.ConcertLocationsAndDates th,
+.ConcertLocationsAndDates td {
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid #334155;
+    font-size: 0.85rem;
+}
+
+/* Header text */
+.ConcertLocationsAndDates th {
+    color: #38bdf8;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+/* Table lists */
+.ConcertLocationsAndDates ul {
+    list-style: none;
+}
+
+/* Dates inside table */
+.ConcertLocationsAndDates time {
+    display: block;
+    padding: 0.3rem;
+    background: #0f172a;
+    border-radius: 6px;
+}
+
+/* Hover effect */
+.ConcertLocationsAndDates td:hover {
+    background: #334155;
+}
+
+/* =======================
+   PAGINATION
+======================= */
 .page-navigator {
     margin-top: 2rem;
     display: flex;
@@ -109,10 +229,10 @@ h1 {
 .page-navigator a {
     padding: 0.5rem 0.8rem;
     background: #1e293b;
-    color: #f1f5f9;
+    color: #e2e8f0;
     text-decoration: none;
     border-radius: 6px;
-    transition: background 0.2s ease;
+    transition: 0.2s ease;
 }
 
 .page-navigator a:hover {
@@ -120,13 +240,33 @@ h1 {
     color: #020617;
 }
 
-/* Responsive tweaks */
-@media (max-width: 500px) {
+/* =======================
+   RESPONSIVE
+======================= */
+@media (max-width: 768px) {
+    .ArtistDetails {
+        padding: 1.5rem;
+    }
+
+    .ArtistDetails .Image {
+        height: 220px;
+    }
+
+    .ConcertLocationsAndDates {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 
     .Image {
-        height: 150px;
+        height: 160px;
+    }
+
+    .Members {
+        justify-content: flex-start;
     }
 }
