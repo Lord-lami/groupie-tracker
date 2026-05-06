@@ -20,7 +20,7 @@ type artistDetail struct {
 	Details render.LinkString      `json:"-"`
 }
 
-var nbrOfArtistsPerPage int = 6
+var nbrOfArtistsPerPage int = 8
 
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	// Receive and validate the page number
