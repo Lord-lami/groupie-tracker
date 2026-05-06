@@ -134,8 +134,10 @@ func renderPageNav(pageNumInt int) template.HTML {
 			default:
 				panic("wrong field name for pageNavLinkString: " + name)
 			}
+			return render.RenderBasic("linkstring.html")(linkText, data)
 		}
-		return render.RenderBasic("linkstring.html")(linkText, data)
+		return ""
+
 	}
 
 	render.MapTypeToRenderFunc[pageNavLinkString](renderPageNavLinkString)
