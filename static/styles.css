@@ -241,6 +241,51 @@ h1 {
 }
 
 /* =======================
+   FOOTER
+======================= */
+footer {
+    margin-top: 3rem;
+    padding: 1.2rem;
+    text-align: center;
+    background: #020617;
+    border-top: 1px solid #1e293b;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+/* Footer link */
+footer a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 0.3rem;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: #0ea5e9;
+    text-decoration: underline;
+}
+
+/* =======================
+   PAGE LAYOUT (SAFE)
+======================= */
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+/* Make sure container sits in the middle row */
+.container {
+    width: 100%;
+}
+
+/* =======================
    RESPONSIVE
 ======================= */
 @media (max-width: 768px) {
