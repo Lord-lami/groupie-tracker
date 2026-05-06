@@ -6,13 +6,16 @@ import (
 	"unicode"
 )
 
+type labeledMap map[string][]render.DateString
+
 type labeledStringSlice []string
 type labeledInt int
 type labeledDateString render.DateString
 
-func renderLabeled(name string, data any, templateName string) template.HTML {
-	dataHTML := render.RenderBasic(templateName)(name, data)
-	labelHTML := template.HTML("<strong>" + name + ":</strong>")
+func renderLabeledMap(name string, data any) template.HTML {
+	value := map[string][]render.DateString(data.(labeledMap))
+	dataHTML := render.Render(name, value)
+	labelHTML := template.HTML("<strong>" + spaceOutCamelCase(name) + ": </strong>")
 	return labelHTML + dataHTML
 }
 

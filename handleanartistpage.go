@@ -12,8 +12,8 @@ import (
 )
 
 type anArtistRelations struct {
-	Id             render.Ignored                 `json:"id"`
-	DatesLocations map[string][]render.DateString `json:"datesLocations"`
+	Id             render.Ignored `json:"id"`
+	DatesLocations labeledMap     `json:"datesLocations"`
 }
 
 type anArtistDetail struct {
@@ -48,7 +48,7 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	artistDetailHTML := render.RenderObj("ArtistDetails", artistDetail)
-	artistRelationHTML := render.RenderMap("ConcertLocationsAndDates",
+	artistRelationHTML := renderLabeledMap("ConcertLocationsAndDates",
 		artistRelation.DatesLocations)
 
 	page.Title = artistDetail.Name.(string)
