@@ -75,3 +75,8 @@ func selectRenderFuncFor(value reflect.Value) (renderFunc RenderFunc) {
 	}
 	return
 }
+
+func Render(name string, data any) template.HTML {
+	renderFunc := selectRenderFuncFor(reflect.ValueOf(data))
+	return renderFunc(name, data)
+}
