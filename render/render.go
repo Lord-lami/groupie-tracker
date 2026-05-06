@@ -60,15 +60,18 @@ func RenderBasic(templateName string) RenderFunc {
 }
 
 func selectRenderFuncFor(value reflect.Value) (renderFunc RenderFunc) {
-	switch value.Kind() {
-	case reflect.Struct:
-		renderFunc = RenderObj
-	case reflect.Array, reflect.Slice:
-		renderFunc = RenderArr
-	case reflect.Map:
-		renderFunc = RenderMap
-	default:
-		renderFunc = RenderTypeFunc[value.Type().String()]
+	renderFunc = RenderTypeFunc[value.Type().String()]
+	if renderFunc == nil {
+		switch value.Kind() {
+		case reflect.Struct:
+			renderFunc = RenderObj
+		case reflect.Array, reflect.Slice:
+			renderFunc = RenderArr
+		case reflect.Map:
+			renderFunc = RenderMap
+		default:
+			panic("The type "+value.Type().Name()+" does not have a function mapped to it in RenderTypeFunc")
+		}
 	}
 	return
 }
