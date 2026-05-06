@@ -37,7 +37,7 @@ func getApiResponseBody(path string) (body []byte, err error) {
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err, string(debug.Stack()))
+		// log.Println(err, string(debug.Stack()))
 		return nil, err
 	}
 
