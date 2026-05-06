@@ -48,17 +48,14 @@ func getApiResponseBody(path string) (body []byte, err error) {
 	return
 }
 
-func hanleMainPage(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/artists?page=1", http.StatusSeeOther)
-}
-
 func main() {
 	// for _, tmp := range theTemplates.Templates() {
 	// 	fmt.Println(tmp.Name())
 	// }
-	http.HandleFunc("GET /{$}", hanleMainPage)
+	http.HandleFunc("GET /{$}", handleArtistsPage)
 	http.HandleFunc("GET /artists", handleArtistsPage)
 	http.HandleFunc("GET /artists/{id}", handleAnArtistPage)
+
 
 	log.Println("Server running on port 8080")
 	log.Println(http.ListenAndServe(":8080", nil))
