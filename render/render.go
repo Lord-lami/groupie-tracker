@@ -25,12 +25,12 @@ var TheTemplates *template.Template = template.Must(template.ParseFS(templateFS,
 
 var RenderTypeFunc map[string]RenderFunc = map[string]RenderFunc{
 	TypeString[Ignored]():         func(name string, data any) template.HTML { return "" },
-	"int":                         NewRenderFunc[int]("int.html"),
-	"string":                      NewRenderFunc[string]("string.html"),
-	"bool":                        NewRenderFunc[bool]("bool.html"),
+	"int":                         RenderBasic("int.html"),
+	"string":                      RenderBasic("string.html"),
+	"bool":                        RenderBasic("bool.html"),
 	TypeString[DateString]():      renderDateString,
-	TypeString[LinkString]():      NewRenderFunc[LinkString]("linkstring.html"),
-	TypeString[ImageLinkString](): NewRenderFunc[ImageLinkString]("imagelinkstring.html"),
+	TypeString[LinkString]():      RenderBasic("linkstring.html"),
+	TypeString[ImageLinkString](): RenderBasic("imagelinkstring.html"),
 }
 
 func TypeString[T any]() string {
@@ -41,15 +41,14 @@ func MapTypeToRenderFunc[T any](f RenderFunc) {
 	RenderTypeFunc[TypeString[T]()] = f
 }
 
-func NewRenderFunc[T any](templateName string) RenderFunc {
+func RenderBasic(templateName string) RenderFunc {
 	return func(name string, data any) (dataHTML template.HTML) {
-		value := data.(T)
 		var templateData struct {
 			Name  string
-			Value T
+			Value any
 		}
 		templateData.Name = name
-		templateData.Value = value
+		templateData.Value = data
 		var err error
 		dataHTML, err = renderData(templateData, templateName)
 		if err != nil {

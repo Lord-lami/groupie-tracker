@@ -49,7 +49,7 @@ func renderPageNav(pageNumInt int) template.HTML {
 				linkText = ">"
 			}
 		}
-		return render.NewRenderFunc[pageNavLinkString]("linkstring.html")(linkText, data)
+		return render.RenderBasic("linkstring.html")(linkText, data)
 	})
 	return render.RenderObj("page-navigator", pageNavigator)
 }

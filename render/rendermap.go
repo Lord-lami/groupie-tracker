@@ -38,6 +38,6 @@ func RenderMap(mapName string, data any) (mapHTML template.HTML) {
 		Keys   []template.HTML
 		Values []template.HTML
 	}
-	mapHTML = NewRenderFunc[keyValuePairs]("map.html")(mapName, keyValuePairs{keysHTMLs, valuesHTMLs})
+	mapHTML = RenderBasic("map.html")(mapName, keyValuePairs{keysHTMLs, valuesHTMLs})
 	return
 }
