@@ -37,12 +37,12 @@ func getApiResponseBody(path string) (body []byte, err error) {
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		// log.Println(err, string(debug.Stack()))
+		log.Println(err, string(debug.Stack()))
 		return nil, err
 	}
 
 	if string(body) == `{"id":0,"image":"","name":"","members":null,"creationDate":0,"firstAlbum":"","locations":"","concertDates":"","relations":""}`+"\n" {
-		log.Println("Empty response body for " + apiLink)
+		// log.Println("Empty response body for " + apiLink)
 		return nil, emptyBody
 	}
 	return
