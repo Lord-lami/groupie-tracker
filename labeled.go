@@ -1,9 +1,10 @@
 package main
 
 import (
-	"groupie-tracker/render"
 	"html/template"
 	"unicode"
+
+	"github.com/Lord-lami/render-html"
 )
 
 type labeledMap map[string][]render.DateString
@@ -11,6 +12,9 @@ type labeledMap map[string][]render.DateString
 type labeledStringSlice []string
 type labeledInt int
 type labeledDateString render.DateString
+
+// The renderLabeled functions render a variable and add a 
+// strong tag element containing the name before the variable's HTML
 
 func renderLabeledMap(name string, data any) template.HTML {
 	value := map[string][]render.DateString(data.(labeledMap))
@@ -40,6 +44,7 @@ func renderLabeledDateString(name string, data any) template.HTML {
 	return labelHTML + dataHTML
 }
 
+// spaceOutCamelCase adds spaces before the uppercase letters in a string.
 func spaceOutCamelCase(str string) string {
 	result := []rune{rune(str[0])}
 	for _, char := range str[1:] {

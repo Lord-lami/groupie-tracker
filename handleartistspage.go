@@ -1,9 +1,7 @@
 package main
 
 import (
-	// "github.com/Lord-lami/render-html"
 	"encoding/json"
-	"groupie-tracker/render"
 	"html/template"
 	"log"
 	"net/http"
@@ -11,6 +9,8 @@ import (
 	"runtime/debug"
 	"strconv"
 	"sync"
+
+	"github.com/Lord-lami/render-html"
 )
 
 type artistDetail struct {
@@ -20,7 +20,7 @@ type artistDetail struct {
 	Details render.LinkString      `json:"-"`
 }
 
-var nbrOfItemsPerPage int = 6
+var nbrOfArtistsPerPage int = 6
 
 func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	// Receive and validate the page number
@@ -35,11 +35,12 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the response body from the API for 6 artists per page
+	// concurrently get the response body from the API for
+	// nbrOfArtistsPerPage number of artists
 	var wg sync.WaitGroup
-	artistsDetails := make([]artistDetail, nbrOfItemsPerPage)
-	firstId := (pageNumInt-1)*nbrOfItemsPerPage + 1
-	lastId := pageNumInt * nbrOfItemsPerPage
+	artistsDetails := make([]artistDetail, nbrOfArtistsPerPage)
+	firstId := (pageNumInt-1)*nbrOfArtistsPerPage + 1
+	lastId := pageNumInt * nbrOfArtistsPerPage
 	for i := 0; i <= lastId-firstId; i++ {
 		wg.Add(1)
 		go func(i int) {
@@ -74,6 +75,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	wg.Wait()
 
+	// filter out empty artistsDetails elements
 	filteredArtistsDetails := []artistDetail{}
 	for _, ad := range artistsDetails {
 		if ad.Id != render.Ignored(nil) {
@@ -99,13 +101,15 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// renderPageNav renders the page navigation links
 func renderPageNav(pageNumInt int) template.HTML {
 	type pageNavLinkString string
 	var pageNavigator struct {
 		LeftArrow, PageNumber, RightArrow pageNavLinkString
 	}
+
 	pageNumStr := strconv.Itoa(pageNumInt)
-	lastId := pageNumInt * nbrOfItemsPerPage
+	lastId := pageNumInt * nbrOfArtistsPerPage
 	if pageNumInt > 1 {
 		pageNavigator.LeftArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt-1))
 	}
@@ -114,7 +118,10 @@ func renderPageNav(pageNumInt int) template.HTML {
 	if err == nil {
 		pageNavigator.RightArrow = pageNavLinkString("/artists?page=" + strconv.Itoa(pageNumInt+1))
 	}
-	render.MapTypeToRenderFunc[pageNavLinkString](func(name string, data any) (pageNavLinkHTML template.HTML) {
+
+	// renderPageNavLinkString renders the pageNavLinkString with
+	// the correct link text instead of using the field name.
+	renderPageNavLinkString := func(name string, data any) (pageNavLinkHTML template.HTML) {
 		linkText := ""
 		if data.(pageNavLinkString) != "" {
 			switch name {
@@ -124,9 +131,14 @@ func renderPageNav(pageNumInt int) template.HTML {
 				linkText = pageNumStr
 			case "RightArrow":
 				linkText = ">"
+			default:
+				panic("wrong field name for pageNavLinkString: " + name)
 			}
 		}
 		return render.RenderBasic("linkstring.html")(linkText, data)
-	})
+	}
+
+	render.MapTypeToRenderFunc[pageNavLinkString](renderPageNavLinkString)
+
 	return render.RenderObj("page-navigator", pageNavigator)
 }

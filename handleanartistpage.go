@@ -1,14 +1,14 @@
 package main
 
 import (
-	// "github.com/Lord-lami/render-html"
 	"encoding/json"
-	"groupie-tracker/render"
 	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
+
+	"github.com/Lord-lami/render-html"
 )
 
 type anArtistRelations struct {
@@ -61,6 +61,8 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// channelApiData unmarshals the JSON from the API enpoint path 
+// into a variable of type T and sends the data through dataChan.
 func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) {
 	respBody, err := getApiResponseBody(path)
 
