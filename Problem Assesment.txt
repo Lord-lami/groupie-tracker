@@ -19,4 +19,4 @@ image url string - image elements
 endpoint url string - pages, link to pages
 objects - div
 arrays/list - ul, ol
-2d array/list - table
+map - table
