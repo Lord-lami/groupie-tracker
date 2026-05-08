@@ -31,6 +31,7 @@ func handleArtistsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	pageNumInt, err := strconv.Atoi(pageNumStr)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		log.Println(err, string(debug.Stack()))
 		return
 	}

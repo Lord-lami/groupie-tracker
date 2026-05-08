@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -32,10 +33,11 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	if _, err := strconv.Atoi(id); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		log.Println(err, string(debug.Stack()))
 		return
 	}
-
+	fmt.Println("GOT PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSST")
 	artistRelationChan := make(chan anArtistRelations)
 	go channelApiData(w, "/relation/"+id, artistRelationChan)
 
@@ -61,7 +63,7 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// channelApiData unmarshals the JSON from the API enpoint path 
+// channelApiData unmarshals the JSON from the API enpoint path
 // into a variable of type T and sends the data through dataChan.
 func channelApiData[T any](w http.ResponseWriter, path string, dataChan chan T) {
 	respBody, err := getApiResponseBody(path)
