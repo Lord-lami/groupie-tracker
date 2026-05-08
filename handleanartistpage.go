@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -37,7 +36,6 @@ func handleAnArtistPage(w http.ResponseWriter, r *http.Request) {
 		log.Println(err, string(debug.Stack()))
 		return
 	}
-	fmt.Println("GOT PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSST")
 	artistRelationChan := make(chan anArtistRelations)
 	go channelApiData(w, "/relation/"+id, artistRelationChan)
 
